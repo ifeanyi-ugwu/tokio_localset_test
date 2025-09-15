@@ -3,7 +3,7 @@ use quote::quote;
 use syn::{ItemFn, parse_macro_input};
 
 #[proc_macro_attribute]
-pub fn localtest(_attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn localset_test(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as ItemFn);
     let name = &input.sig.ident;
     let block = &input.block;
