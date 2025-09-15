@@ -1,14 +1,21 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+use proc_macro::TokenStream;
+use quote::quote;
+use syn::{ItemFn, parse_macro_input};
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[proc_macro_attribute]
+pub fn localtest(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(item as ItemFn);
+    let name = &input.sig.ident;
+    let block = &input.block;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+    // Expand to a tokio test wrapped in LocalSet
+    let expanded = quote! {
+        #[tokio::test(flavor = "current_thread")]
+        async fn #name() {
+            let local = tokio::task::LocalSet::new();
+            local.run_until(async #block).await;
+        }
+    };
+
+    expanded.into()
 }
